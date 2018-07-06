@@ -9,6 +9,7 @@ namespace WebApplication3.Models
     {
         public string year { get; set; }
         public string code { get; set; }
+        public string Topic { get; set; }
     }
 
     public class Text

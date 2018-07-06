@@ -12,6 +12,8 @@ using System.Text;
 using System.Web.Script.Serialization;
 using WebApplication3.Models;
 using WebApplication3.Controllers;
+using System.Data.SqlClient;
+using System.Data;
 
 namespace WebApplication3
 {
@@ -63,8 +65,8 @@ namespace WebApplication3
             }
             else if (request.queryResult.parameters.year != "" && request.queryResult.parameters.code != "" && request.queryResult.parameters.code.ToUpper() == "SUMMARY")
             {
-                var url2 = "http://datareports.lsu.edu/Reports/TrafficReports/" + request.queryResult.parameters.year + "/Summary/Summary.asp";
-                return "Here is your URL: " + url2;
+                string url = "http://datareports.lsu.edu/Reports/TrafficReports/" + request.queryResult.parameters.year + "/Summary/Summary.asp";
+                return "Here is your URL: " + url;
             }
             else if (request.queryResult.parameters.year != "")
             {
@@ -80,9 +82,58 @@ namespace WebApplication3
             }
         }
 
+        public string ListTopics(ApiAiRequest request)
+        {
+            SqlConnection cn = new SqlConnection("Data Source=dev-sqlsrv;Initial Catalog=CRASH_LINKS;Integrated Security=True");
+            string query = "SELECT [REPORTHEADER], [REPORTHEADERLONG] From [CRASH_LINKS].[dbo].[TRAFFIC_CMV_HEADERS]";
+            SqlCommand cmd = new SqlCommand(query, cn);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            DataTable tbl = new DataTable();
+
+            try
+            {
+                cn.Open();
+                da.Fill(tbl);
+                cn.Close();
+            }
+            catch(Exception ex)
+            {
+                return ex.InnerException.Message;
+            }
+            string s = "Here are the topics:";
+            for(int i = 0; i < tbl.Rows.Count; i++)
+            {
+                s += Environment.NewLine + tbl.Rows[i].ItemArray[0] + "- " + tbl.Rows[i].ItemArray[1];
+            }
+
+            return s;
+        }
+
         public string ListByTopic(ApiAiRequest request)
         {
-            return "Hello World";
+            SqlConnection cn = new SqlConnection("Data Source=dev-sqlsrv;Initial Catalog=CRASH_LINKS;Integrated Security=True");
+            string query = "SELECT [REPORTLETTER],[SUBHEADERNUM],[POSTNUMBER],[SUBHEADER] FROM [CRASH_LINKS].[dbo].[TRAFFIC] WHERE [REPORTLETTER] = '" + request.queryResult.parameters.Topic + "' AND [ACTIVE] = 1 ORDER BY [SUBHEADERNUM]";
+            SqlCommand cmd = new SqlCommand(query, cn);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            DataTable tbl = new DataTable();
+
+            try
+            {
+                cn.Open();
+                da.Fill(tbl);
+                cn.Close();
+            }
+            catch (Exception ex)
+            {
+                return ex.InnerException.Message;
+            }
+            string s = "Here are the reports in this topic:";
+            for (int i = 0; i < tbl.Rows.Count; i++)
+            {
+                s += Environment.NewLine + tbl.Rows[i].ItemArray[0] + tbl.Rows[i].ItemArray[1] + tbl.Rows[i].ItemArray[2] + "- " + tbl.Rows[i].ItemArray[3];
+            }
+
+            return s;
         }
     }
 }

@@ -42,6 +42,8 @@ namespace WebApplication3.Controllers
                     return respond(ff.GiveURL(request));
                 case "FindReport.year":
                     return respond(ff.CheckYear(request));
+                case "FindReport.topics":
+                    return respond(ff.ListTopics(request));
                 case "FindReport.listbytopic":
                     return respond(ff.ListByTopic(request));
             }
