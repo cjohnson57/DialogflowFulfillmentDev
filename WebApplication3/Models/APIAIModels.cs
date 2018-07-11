@@ -10,6 +10,16 @@ namespace WebApplication3.Models
         public string year { get; set; }
         public string code { get; set; }
         public string Topic { get; set; }
+        public string KeyWord { get; set; }
+        public string KeyWord1 { get; set; }
+        public string KeyWord2 { get; set; }
+        public string KeyWord3 { get; set; }
+        public string KeyWord4 { get; set; }
+        public string KeyWord5 { get; set; }
+        public string KeyWord6 { get; set; }
+        public string KeyWord7 { get; set; }
+        public string KeyWord8 { get; set; }
+        public string KeyWord9 { get; set; }
     }
 
     public class Text

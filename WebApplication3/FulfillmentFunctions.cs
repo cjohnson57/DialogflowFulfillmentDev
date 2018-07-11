@@ -51,7 +51,7 @@ namespace WebApplication3
                 }
                 else
                 {
-                    return "Alright, we will now find reports for year " + request.queryResult.parameters.year + ". What is the code for this report?";
+                    return "Alright, we will now find reports for year " + request.queryResult.parameters.year + ". If you know the code for this report, you can tell me that. If not, we can search reports.";
                 }
             }
         }
@@ -112,7 +112,7 @@ namespace WebApplication3
         public string ListByTopic(ApiAiRequest request)
         {
             SqlConnection cn = new SqlConnection("Data Source=dev-sqlsrv;Initial Catalog=CRASH_LINKS;Integrated Security=True");
-            string query = "SELECT [REPORTLETTER],[SUBHEADERNUM],[POSTNUMBER],[SUBHEADER] FROM [CRASH_LINKS].[dbo].[TRAFFIC] WHERE [REPORTLETTER] = '" + request.queryResult.parameters.Topic + "' AND [ACTIVE] = 1 ORDER BY [SUBHEADERNUM]";
+            string query = "SELECT [REPORTLETTER],[SUBHEADERNUM],[POSTNUMBER],[SUBHEADER] FROM [CRASH_LINKS].[dbo].[TRAFFIC] WHERE [REPORTLETTER] = '" + request.queryResult.parameters.Topic + "' AND [ACTIVE] = 1 ORDER BY [REPORTLETTER], [SUBHEADERNUM], [POSTNUMBER]";
             SqlCommand cmd = new SqlCommand(query, cn);
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             DataTable tbl = new DataTable();
@@ -134,6 +134,93 @@ namespace WebApplication3
             }
 
             return s;
+        }
+
+        public string ListByKeyword(ApiAiRequest request)
+        {
+            SqlConnection cn = new SqlConnection("Data Source=HSRG-100N5\\TESTSERVER;Initial Catalog=CRASH_LINKS;Integrated Security=True");
+            string query = KeywordQueryBuilder(request);
+
+            SqlCommand cmd = new SqlCommand(query, cn);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            DataTable tbl = new DataTable();
+
+            cn.Open();
+            da.Fill(tbl);
+            cn.Close();
+
+            string s = "Here are the reports that contain this phrase:";
+            for (int i = 0; i < tbl.Rows.Count; i++)
+            {
+                s += Environment.NewLine + tbl.Rows[i].ItemArray[0] + tbl.Rows[i].ItemArray[1] + tbl.Rows[i].ItemArray[2] + "- " + tbl.Rows[i].ItemArray[3];
+            }
+
+            return s;
+        }
+
+        private string KeywordQueryBuilder(ApiAiRequest request)
+        {
+            string query = "SELECT [REPORTLETTER],[SUBHEADERNUM],[POSTNUMBER],[SUBHEADER] FROM[CRASH_LINKS].[dbo].[TRAFFIC] WHERE (";
+            List<string> keywords = dumbfunction(request);
+            for(int i = 0; i < keywords.Count(); i++)
+            {
+                if (i == 0)
+                {
+                    query += "[KEYWORDS] LIKE '%" + keywords[i] + "%'";
+                }
+                else
+                {
+                    query += " OR [KEYWORDS] LIKE '%" + keywords[i] + "%'";
+                }
+            }
+            query += ") AND [ACTIVE] = 1 ORDER BY[REPORTLETTER], [SUBHEADERNUM], [POSTNUMBER]";
+            return query;
+        }
+
+        private List<string> dumbfunction(ApiAiRequest request)
+        {
+            List<string> keywords = new List<string>();
+            if (request.queryResult.parameters.KeyWord != "")
+            {
+                keywords.Add(request.queryResult.parameters.KeyWord);
+            }
+            if (request.queryResult.parameters.KeyWord1 != "")
+            {
+                keywords.Add(request.queryResult.parameters.KeyWord1);
+            }
+            if (request.queryResult.parameters.KeyWord2 != "")
+            {
+                keywords.Add(request.queryResult.parameters.KeyWord2);
+            }
+            if (request.queryResult.parameters.KeyWord3 != "")
+            {
+                keywords.Add(request.queryResult.parameters.KeyWord3);
+            }
+            if (request.queryResult.parameters.KeyWord4 != "")
+            {
+                keywords.Add(request.queryResult.parameters.KeyWord4);
+            }
+            if (request.queryResult.parameters.KeyWord5 != "")
+            {
+                keywords.Add(request.queryResult.parameters.KeyWord5);
+            }
+            if (request.queryResult.parameters.KeyWord6 != "")
+            {
+                keywords.Add(request.queryResult.parameters.KeyWord6);
+            }
+            if (request.queryResult.parameters.KeyWord7 != "")
+            {
+                keywords.Add(request.queryResult.parameters.KeyWord7);
+            }
+            if (request.queryResult.parameters.KeyWord8 != "")
+            {
+                keywords.Add(request.queryResult.parameters.KeyWord8);
+            }
+            if (request.queryResult.parameters.KeyWord9 != "")
+            {
+                keywords.Add(request.queryResult.parameters.KeyWord9);
+            }
+            return keywords;
         }
     }
 }

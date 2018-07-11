@@ -46,6 +46,8 @@ namespace WebApplication3.Controllers
                     return respond(ff.ListTopics(request));
                 case "FindReport.listbytopic":
                     return respond(ff.ListByTopic(request));
+                case "FindReport.listbykeyword":
+                    return respond(ff.ListByKeyword(request));
             }
             return respond("Hello World");
         }
