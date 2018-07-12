@@ -14,6 +14,7 @@ using WebApplication3.Models;
 using WebApplication3.Controllers;
 using System.Data.SqlClient;
 using System.Data;
+using System.Data.SQLite;
 
 namespace WebApplication3
 {
@@ -84,10 +85,11 @@ namespace WebApplication3
 
         public string ListTopics(ApiAiRequest request)
         {
-            SqlConnection cn = new SqlConnection("Data Source=dev-sqlsrv;Initial Catalog=CRASH_LINKS;Integrated Security=True");
-            string query = "SELECT [REPORTHEADER], [REPORTHEADERLONG] From [CRASH_LINKS].[dbo].[TRAFFIC_CMV_HEADERS]";
-            SqlCommand cmd = new SqlCommand(query, cn);
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            SQLiteConnection cn = new SQLiteConnection("Data Source=|DataDirectory|\\CRASH_LINKS.sqlite3; Version=3");
+            //Once we go back to MSSS: [CRASH_LINKS].[dbo].[TRAFFIC_CMV_HEADERS]
+            string query = "SELECT [REPORTHEADER], [REPORTHEADERLONG] From TRAFFIC_CMV_HEADERS";
+            SQLiteCommand cmd = new SQLiteCommand(query, cn);
+            SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
             DataTable tbl = new DataTable();
 
             try
@@ -98,10 +100,10 @@ namespace WebApplication3
             }
             catch(Exception ex)
             {
-                return ex.InnerException.Message;
+                return "Error connecting to database.";
             }
             string s = "Here are the topics:";
-            for(int i = 0; i < tbl.Rows.Count; i++)
+            for (int i = 0; i < tbl.Rows.Count; i++)
             {
                 s += Environment.NewLine + tbl.Rows[i].ItemArray[0] + "- " + tbl.Rows[i].ItemArray[1];
             }
@@ -111,10 +113,10 @@ namespace WebApplication3
 
         public string ListByTopic(ApiAiRequest request)
         {
-            SqlConnection cn = new SqlConnection("Data Source=dev-sqlsrv;Initial Catalog=CRASH_LINKS;Integrated Security=True");
-            string query = "SELECT [REPORTLETTER],[SUBHEADERNUM],[POSTNUMBER],[SUBHEADER] FROM [CRASH_LINKS].[dbo].[TRAFFIC] WHERE [REPORTLETTER] = '" + request.queryResult.parameters.Topic + "' AND [ACTIVE] = 1 ORDER BY [REPORTLETTER], [SUBHEADERNUM], [POSTNUMBER]";
-            SqlCommand cmd = new SqlCommand(query, cn);
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            SQLiteConnection cn = new SQLiteConnection("Data Source=|DataDirectory|\\CRASH_LINKS.sqlite3; Version=3");
+            string query = "SELECT [REPORTLETTER],[SUBHEADERNUM],[POSTNUMBER],[SUBHEADER] FROM TRAFFIC WHERE [REPORTLETTER] = '" + request.queryResult.parameters.Topic + "' AND [ACTIVE] = 1 ORDER BY [REPORTLETTER], [SUBHEADERNUM], [POSTNUMBER]";
+            SQLiteCommand cmd = new SQLiteCommand(query, cn);
+            SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
             DataTable tbl = new DataTable();
 
             try
@@ -136,31 +138,37 @@ namespace WebApplication3
             return s;
         }
 
-        public string ListByKeyword(ApiAiRequest request)
+        public string ListByKeyword(ApiAiRequest request, bool and)
         {
-            SqlConnection cn = new SqlConnection("Data Source=HSRG-100N5\\TESTSERVER;Initial Catalog=CRASH_LINKS;Integrated Security=True");
-            string query = KeywordQueryBuilder(request);
-
-            SqlCommand cmd = new SqlCommand(query, cn);
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            SQLiteConnection cn = new SQLiteConnection("Data Source=|DataDirectory|\\CRASH_LINKS.sqlite3; Version=3");
+            string query = KeywordQueryBuilder(request, and);
+            SQLiteCommand cmd = new SQLiteCommand(query, cn);
+            SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
             DataTable tbl = new DataTable();
 
             cn.Open();
             da.Fill(tbl);
             cn.Close();
 
-            string s = "Here are the reports that contain this phrase:";
-            for (int i = 0; i < tbl.Rows.Count; i++)
+            string s = "Here are the reports that contain these keywords:";
+            if (tbl.Rows.Count > 0)
             {
-                s += Environment.NewLine + tbl.Rows[i].ItemArray[0] + tbl.Rows[i].ItemArray[1] + tbl.Rows[i].ItemArray[2] + "- " + tbl.Rows[i].ItemArray[3];
+                for (int i = 0; i < tbl.Rows.Count; i++)
+                {
+                    s += Environment.NewLine + tbl.Rows[i].ItemArray[0] + tbl.Rows[i].ItemArray[1] + tbl.Rows[i].ItemArray[2] + "- " + tbl.Rows[i].ItemArray[3];
+                }
+            }
+            else
+            {
+                return (and ? ListByKeyword(request, false) : "Could not find results for these keywords.");
             }
 
             return s;
         }
 
-        private string KeywordQueryBuilder(ApiAiRequest request)
+        private string KeywordQueryBuilder(ApiAiRequest request, bool and)
         {
-            string query = "SELECT [REPORTLETTER],[SUBHEADERNUM],[POSTNUMBER],[SUBHEADER] FROM[CRASH_LINKS].[dbo].[TRAFFIC] WHERE (";
+            string query = "SELECT [REPORTLETTER],[SUBHEADERNUM],[POSTNUMBER],[SUBHEADER] FROM TRAFFIC WHERE (";
             List<string> keywords = dumbfunction(request);
             for(int i = 0; i < keywords.Count(); i++)
             {
@@ -170,7 +178,7 @@ namespace WebApplication3
                 }
                 else
                 {
-                    query += " OR [KEYWORDS] LIKE '%" + keywords[i] + "%'";
+                    query += (and ? " AND [KEYWORDS] LIKE '%" + keywords[i] + "%'" : " OR [KEYWORDS] LIKE '%" + keywords[i] + "%'");
                 }
             }
             query += ") AND [ACTIVE] = 1 ORDER BY[REPORTLETTER], [SUBHEADERNUM], [POSTNUMBER]";
