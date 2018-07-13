@@ -10,16 +10,11 @@ namespace WebApplication3.Models
         public string year { get; set; }
         public string code { get; set; }
         public string Topic { get; set; }
-        public string KeyWord { get; set; }
-        public string KeyWord1 { get; set; }
-        public string KeyWord2 { get; set; }
-        public string KeyWord3 { get; set; }
-        public string KeyWord4 { get; set; }
-        public string KeyWord5 { get; set; }
-        public string KeyWord6 { get; set; }
-        public string KeyWord7 { get; set; }
-        public string KeyWord8 { get; set; }
-        public string KeyWord9 { get; set; }
+        public List<string> KeyWords { get; set; }
+        public string Table { get; set; }
+        public List<string> PersonConditions { get; set; }
+        public List<string> CrashConditions { get; set; }
+        public List<string> VehicleConditions { get; set; }
     }
 
     public class Text
@@ -32,19 +27,24 @@ namespace WebApplication3.Models
         public Text text { get; set; }
     }
 
-    public class Parameters2
-    {
-        public string codeoriginal { get; set; }
-        public string code { get; set; }
-        public string year { get; set; }
-        public string yearoriginal { get; set; }
-    }
+    //public class Parameters2
+    //{
+    //    public string codeoriginal { get; set; }
+    //    public string code { get; set; }
+    //    public string year { get; set; }
+    //    public string yearoriginal { get; set; }
+    //    public string Topic { get; set; }
+    //    public string KeyWord { get; set; }
+    //    public string query { get; set; }
+    //    public string qyear1 { get; set; }
+    //    public string qyear2 { get; set; }
+    //}
 
     public class OutputContext
     {
         public string name { get; set; }
         public int lifespanCount { get; set; }
-        public Parameters2 parameters { get; set; }
+        public Parameters parameters { get; set; }
     }
 
     public class Intent
