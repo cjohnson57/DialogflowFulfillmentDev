@@ -48,10 +48,12 @@ namespace WebApplication3.Controllers
                     return respond(ff.ListByTopic(request));
                 case "FindReport.listbykeyword":
                     return respond(ff.ListByKeyword(request, true));
-                case "Query.getyear":
+                case "Query.People.conditions":
                     return respond(ff.Query(request));
-                //case "Query.getyear":
-                //    return respond(ff.ChooseQuery(request));
+                case "Query.Crashes.conditions":
+                    return respond(ff.Query(request));
+                case "Query.Vehicles.conditions":
+                    return respond(ff.Query(request));
             }
             return respond("Hello World");
         }

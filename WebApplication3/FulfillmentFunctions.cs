@@ -24,7 +24,7 @@ namespace WebApplication3
         public string FindReport(ApiAiRequest request)
         {
 
-            if (request.queryResult.parameters.year != "" && request.queryResult.parameters.year != "")
+            if (request.queryResult.parameters.year != "" && request.queryResult.parameters.year != "" && request.queryResult.parameters.year != null && request.queryResult.parameters.year != null)
             {
                 return GiveURL(request);
             }
@@ -46,7 +46,7 @@ namespace WebApplication3
             }
             else
             {
-                if (request.queryResult.parameters.code != "")
+                if (request.queryResult.parameters.code != "" && request.queryResult.parameters.code != null)
                 {
                     return GiveURL(request);
                 }
@@ -59,21 +59,21 @@ namespace WebApplication3
 
         public string GiveURL(ApiAiRequest request)
         {
-            if (request.queryResult.parameters.year != "" && request.queryResult.parameters.code != "" && request.queryResult.parameters.code.ToUpper() != "SUMMARY")
+            if (request.queryResult.parameters.year != "" && request.queryResult.parameters.code != "" && request.queryResult.parameters.code.ToUpper() != "SUMMARY" && request.queryResult.parameters.year != null && request.queryResult.parameters.year != null)
             {
                 string url = "http://datareports.lsu.edu/Reports.aspx?yr=" + request.queryResult.parameters.year + "&rpt=" + request.queryResult.parameters.code + "&p=ci";
                 return "Here is your URL: " + url;
             }
-            else if (request.queryResult.parameters.year != "" && request.queryResult.parameters.code != "" && request.queryResult.parameters.code.ToUpper() == "SUMMARY")
+            else if (request.queryResult.parameters.year != "" && request.queryResult.parameters.code != "" && request.queryResult.parameters.code.ToUpper() == "SUMMARY" && request.queryResult.parameters.year != null && request.queryResult.parameters.year != null)
             {
                 string url = "http://datareports.lsu.edu/Reports/TrafficReports/" + request.queryResult.parameters.year + "/Summary/Summary.asp";
                 return "Here is your URL: " + url;
             }
-            else if (request.queryResult.parameters.year != "")
+            else if (request.queryResult.parameters.year != "" && request.queryResult.parameters.year != null)
             {
                 return "What is the code of this report?";
             }
-            else if (request.queryResult.parameters.code != "")
+            else if (request.queryResult.parameters.code != "" && request.queryResult.parameters.code != null)
             {
                 return "What year would you like to find this report for?";
             }
@@ -204,12 +204,30 @@ namespace WebApplication3
 
         private string QueryQueryBuilder(ApiAiRequest request)
         {
-            string query = "SELECT COUNT(*) FROM " + request.queryResult.parameters.Table + " WHERE ";
+            string table = "";
+            if (request.queryResult.parameters.Table != "" && request.queryResult.parameters.Table != null)
+            {
+                table = request.queryResult.parameters.Table;
+            }
+            else
+            {
+                for(int i = 0; i < request.queryResult.outputContexts.Count(); i++)
+                {
+                    try
+                    {
+                        table = request.queryResult.outputContexts[i].parameters.Table;
+                        break;
+                    }
+                    catch { }
+                }
+            }
+            string query = "SELECT COUNT(*) FROM " + table + " WHERE ";
             List<string> conditions = new List<string>();
-            switch(request.queryResult.parameters.Table)
+            switch(table)
             {
                 case "FactPerson":
                     conditions = request.queryResult.parameters.PersonConditions;
+                    conditions.AddRange(GetPersonIntVars(request));
                     break;
                 case "FactCrash":
                     conditions = request.queryResult.parameters.CrashConditions;
@@ -222,8 +240,18 @@ namespace WebApplication3
             {
                 query += conditions[i] + " AND ";
             }
-            query += request.queryResult.parameters.Table.Replace("Fact", "") + "Origin = '" + request.queryResult.parameters.year + "'" ;
+            query += table.Replace("Fact", "") + "Origin = '" + request.queryResult.parameters.year + "'" ;
             return query;
+        }
+
+        private List<string> GetPersonIntVars(ApiAiRequest request)
+        {
+            List<string> intconditions = new List<string>();
+            for(int i = 0; i < request.queryResult.parameters.PersonConditionIntvar.Count(); i++)
+            {
+                intconditions.Add(request.queryResult.parameters.PersonConditionIntvar[i].PersonConditionInt + " " + request.queryResult.parameters.PersonConditionIntvar[i].number.ToString());
+            }
+            return intconditions;
         }
     }
 }

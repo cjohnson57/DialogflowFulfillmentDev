@@ -13,6 +13,7 @@ namespace WebApplication3.Models
         public List<string> KeyWords { get; set; }
         public string Table { get; set; }
         public List<string> PersonConditions { get; set; }
+        public List<PersonConditionIntvar> PersonConditionIntvar { get; set; }
         public List<string> CrashConditions { get; set; }
         public List<string> VehicleConditions { get; set; }
     }
@@ -26,6 +27,13 @@ namespace WebApplication3.Models
     {
         public Text text { get; set; }
     }
+
+    public class PersonConditionIntvar
+    {
+        public int number { get; set; }
+        public string PersonConditionInt { get; set; }
+    }
+
 
     //public class Parameters2
     //{
