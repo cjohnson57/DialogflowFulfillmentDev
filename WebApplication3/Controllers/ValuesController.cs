@@ -34,27 +34,32 @@ namespace WebApplication3.Controllers
         {
             string intent = request.queryResult.intent.displayName;
             FulfillmentFunctions ff = new FulfillmentFunctions();
-            switch (intent)
+            try
             {
-                case "FindReport":
-                    return respond(ff.FindReport(request));
-                case "FindReport.code":
-                    return respond(ff.GiveURL(request));
-                case "FindReport.year":
-                    return respond(ff.CheckYear(request));
-                case "FindReport.topics":
-                    return respond(ff.ListTopics(request));
-                case "FindReport.listbytopic":
-                    return respond(ff.ListByTopic(request));
-                case "FindReport.listbykeyword":
-                    return respond(ff.ListByKeyword(request, true));
-                case "Query.People.conditions":
-                    return respond(ff.Query(request));
-                case "Query.Crashes.conditions":
-                    return respond(ff.Query(request));
-                case "Query.Vehicles.conditions":
-                    return respond(ff.Query(request));
+                switch (intent)
+                {
+                    case "FindReport":
+                        return respond(ff.FindReport(request));
+                    case "FindReport.code":
+                        return respond(ff.GiveURL(request));
+                    case "FindReport.year":
+                        return respond(ff.CheckYear(request));
+                    case "FindReport.topics":
+                        return respond(ff.ListTopics(request));
+                    case "FindReport.listbytopic":
+                        return respond(ff.ListByTopic(request));
+                    case "FindReport.listbykeyword":
+                        return respond(ff.ListByKeyword(request, true));
+                    case "Query.People.conditions":
+                        return respond(ff.Query(request));
+                    case "Query.Crashes.conditions":
+                        return respond(ff.Query(request));
+                    case "Query.Vehicles.conditions":
+                        return respond(ff.Query(request));
+                }
             }
+            catch { }
+
             return respond("Hello World");
         }
 

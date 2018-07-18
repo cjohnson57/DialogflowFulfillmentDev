@@ -231,16 +231,27 @@ namespace WebApplication3
                     break;
                 case "FactCrash":
                     conditions = request.queryResult.parameters.CrashConditions;
+                    conditions.AddRange(GetPersonIntVars(request));
                     break;
                 case "FactVehicle":
                     conditions = request.queryResult.parameters.VehicleConditions;
+                    conditions.AddRange(GetPersonIntVars(request));
                     break;
             }
             for (int i = 0; i < conditions.Count(); i++)
             {
                 query += conditions[i] + " AND ";
             }
-            query += table.Replace("Fact", "") + "Origin = '" + request.queryResult.parameters.year + "'" ;
+            if(request.queryResult.parameters.year2 != "" && request.queryResult.parameters.year2 != null)
+            {
+                query += table.Replace("Fact", "") + "Origin >= '" + request.queryResult.parameters.year1 + "' AND ";
+                query += table.Replace("Fact", "") + "Origin <= '" + request.queryResult.parameters.year2 + "'";
+
+            }
+            else
+            {
+                query += table.Replace("Fact", "") + "Origin = '" + request.queryResult.parameters.year1 + "'";
+            }
             return query;
         }
 
@@ -250,6 +261,26 @@ namespace WebApplication3
             for(int i = 0; i < request.queryResult.parameters.PersonConditionIntvar.Count(); i++)
             {
                 intconditions.Add(request.queryResult.parameters.PersonConditionIntvar[i].PersonConditionInt + " " + request.queryResult.parameters.PersonConditionIntvar[i].number.ToString());
+            }
+            return intconditions;
+        }
+
+        private List<string> GetCrashIntVars(ApiAiRequest request)
+        {
+            List<string> intconditions = new List<string>();
+            for (int i = 0; i < request.queryResult.parameters.CrashConditionIntvar.Count(); i++)
+            {
+                intconditions.Add(request.queryResult.parameters.CrashConditionIntvar[i].CrashConditionInt + " " + request.queryResult.parameters.CrashConditionIntvar[i].number.ToString());
+            }
+            return intconditions;
+        }
+
+        private List<string> GetVehicleIntVars(ApiAiRequest request)
+        {
+            List<string> intconditions = new List<string>();
+            for (int i = 0; i < request.queryResult.parameters.VehicleConditionIntvar.Count(); i++)
+            {
+                intconditions.Add(request.queryResult.parameters.VehicleConditionIntvar[i].VehicleConditionInt + " " + request.queryResult.parameters.VehicleConditionIntvar[i].number.ToString());
             }
             return intconditions;
         }

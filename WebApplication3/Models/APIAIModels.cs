@@ -8,6 +8,8 @@ namespace WebApplication3.Models
     public class Parameters
     {
         public string year { get; set; }
+        public string year1 { get; set; }
+        public string year2 { get; set; }
         public string code { get; set; }
         public string Topic { get; set; }
         public List<string> KeyWords { get; set; }
@@ -15,7 +17,9 @@ namespace WebApplication3.Models
         public List<string> PersonConditions { get; set; }
         public List<PersonConditionIntvar> PersonConditionIntvar { get; set; }
         public List<string> CrashConditions { get; set; }
+        public List<CrashConditionIntvar> CrashConditionIntvar { get; set; }
         public List<string> VehicleConditions { get; set; }
+        public List<VehicleConditionIntvar> VehicleConditionIntvar { get; set; }
     }
 
     public class Text
@@ -32,6 +36,18 @@ namespace WebApplication3.Models
     {
         public int number { get; set; }
         public string PersonConditionInt { get; set; }
+    }
+
+    public class CrashConditionIntvar
+    {
+        public int number { get; set; }
+        public string CrashConditionInt { get; set; }
+    }
+
+    public class VehicleConditionIntvar
+    {
+        public int number { get; set; }
+        public string VehicleConditionInt { get; set; }
     }
 
 
