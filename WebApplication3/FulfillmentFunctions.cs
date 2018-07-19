@@ -188,7 +188,9 @@ namespace WebApplication3
         public string Query(ApiAiRequest request)
         {
             SqlConnection cn = new SqlConnection("Data Source=dev-sqlsrv;Initial Catalog=CRASHDWHSRG;Integrated Security=true");
-            string query = QueryQueryBuilder(request);
+            doublestring ds = QueryQueryBuilder(request);
+            string query = ds.string1;
+            string conditionsforpeople = ds.string2;
             SqlCommand cmd = new SqlCommand(query, cn);
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             DataTable tbl = new DataTable();
@@ -197,12 +199,14 @@ namespace WebApplication3
             da.Fill(tbl);
             cn.Close();
 
-            string s = "The result is ";
+            string s = "Here are the conditions we considered:" + Environment.NewLine;
+            s += conditionsforpeople;
+            s += "Here is the result from those conditions:" + Environment.NewLine;
             s += tbl.Rows[0].ItemArray[0];
             return s;
         }
 
-        private string QueryQueryBuilder(ApiAiRequest request)
+        private doublestring QueryQueryBuilder(ApiAiRequest request)
         {
             string table = "";
             if (!string.IsNullOrEmpty(request.queryResult.parameters.Table))
@@ -222,72 +226,92 @@ namespace WebApplication3
                 }
             }
             string query = "SELECT COUNT(*) FROM " + table + " WHERE ";
+            string conditionsforpeople = "";
             List<string> conditions = new List<string>();
-            switch(table)
+            switch (table)
             {
                 case "FactPerson":
                     conditions = request.queryResult.parameters.PersonConditions;
-                    conditions.AddRange(GetPersonIntVars(request));
                     break;
                 case "FactCrash":
                     conditions = request.queryResult.parameters.CrashConditions;
-                    conditions.AddRange(GetPersonIntVars(request));
                     break;
                 case "FactVehicle":
                     conditions = request.queryResult.parameters.VehicleConditions;
-                    conditions.AddRange(GetPersonIntVars(request));
                     break;
             }
+            List<string> conditionsintvars = GetIntVars(request, table);
+            conditions.AddRange(conditionsintvars);
             for (int i = 0; i < conditions.Count(); i++)
             {
-                query += conditions[i] + " AND ";
-            }
-            if(request.queryResult.parameters.year2 != "" && request.queryResult.parameters.year2 != null)
-            {
-                if(int.Parse(request.queryResult.parameters.year2) > int.Parse(request.queryResult.parameters.year1))
+                if(conditions[i].Contains(";"))
                 {
-                    query += table.Replace("Fact", "") + "Origin >= '" + request.queryResult.parameters.year1 + "' AND ";
-                    query += table.Replace("Fact", "") + "Origin <= '" + request.queryResult.parameters.year2 + "'";
+                    query += conditions[i].Substring(0, conditions[i].IndexOf(";")) + " AND "; 
+                    conditionsforpeople += conditions[i].Substring(conditions[i].IndexOf(";") + 1, conditions[i].Length - conditions[i].IndexOf(";") - 1) + Environment.NewLine;
                 }
                 else
                 {
-                    query += table.Replace("Fact", "") + "Origin >= '" + request.queryResult.parameters.year2 + "' AND ";
-                    query += table.Replace("Fact", "") + "Origin <= '" + request.queryResult.parameters.year1 + "'";
+                    query += conditions[i] + " AND ";
+                    conditionsforpeople += conditions[i] + Environment.NewLine;
+                }
+            }
+            if (!string.IsNullOrEmpty(request.queryResult.parameters.year2))
+            {
+                string year1 = request.queryResult.parameters.year1;
+                string year2 = request.queryResult.parameters.year2;
+                if (int.Parse(year2) > int.Parse(year1))
+                {
+                    query += table.Replace("Fact", "") + "Origin >= '" + year1 + "' AND ";
+                    query += table.Replace("Fact", "") + "Origin <= '" + year2 + "'";
+                    conditionsforpeople += "From " + year1 + "-" + year2 + Environment.NewLine;
+                }
+                else
+                {
+                    query += table.Replace("Fact", "") + "Origin >= '" + year2 + "' AND ";
+                    query += table.Replace("Fact", "") + "Origin <= '" + year1 + "'";
+                    conditionsforpeople += "From " + year2 + "-" + year1 + Environment.NewLine;
                 }
             }
             else
             {
                 query += table.Replace("Fact", "") + "Origin = '" + request.queryResult.parameters.year1 + "'";
+                conditionsforpeople += "In " + request.queryResult.parameters.year1 + Environment.NewLine;
             }
-            return query;
+            doublestring ds = new doublestring();
+            ds.string1 = query;
+            ds.string2 = conditionsforpeople;
+            return ds;
         }
 
-        private List<string> GetPersonIntVars(ApiAiRequest request)
+        struct doublestring
         {
-            List<string> intconditions = new List<string>();
-            for(int i = 0; i < request.queryResult.parameters.PersonConditionIntvar.Count(); i++)
-            {
-                intconditions.Add(request.queryResult.parameters.PersonConditionIntvar[i].PersonConditionInt + " " + request.queryResult.parameters.PersonConditionIntvar[i].number.ToString());
-            }
-            return intconditions;
+            public string string1;
+            public string string2;
         }
 
-        private List<string> GetCrashIntVars(ApiAiRequest request)
+        private List<string> GetIntVars(ApiAiRequest request, string table)
         {
             List<string> intconditions = new List<string>();
-            for (int i = 0; i < request.queryResult.parameters.CrashConditionIntvar.Count(); i++)
+            switch (table)
             {
-                intconditions.Add(request.queryResult.parameters.CrashConditionIntvar[i].CrashConditionInt + " " + request.queryResult.parameters.CrashConditionIntvar[i].number.ToString());
-            }
-            return intconditions;
-        }
-
-        private List<string> GetVehicleIntVars(ApiAiRequest request)
-        {
-            List<string> intconditions = new List<string>();
-            for (int i = 0; i < request.queryResult.parameters.VehicleConditionIntvar.Count(); i++)
-            {
-                intconditions.Add(request.queryResult.parameters.VehicleConditionIntvar[i].VehicleConditionInt + " " + request.queryResult.parameters.VehicleConditionIntvar[i].number.ToString());
+                case "FactPerson":
+                    for (int i = 0; i < request.queryResult.parameters.PersonConditionIntvar.Count(); i++)
+                    {
+                        intconditions.Add(request.queryResult.parameters.PersonConditionIntvar[i].PersonConditionInt + " " + request.queryResult.parameters.PersonConditionIntvar[i].number.ToString());
+                    }
+                    break;
+                case "FactCrash":
+                    for (int i = 0; i < request.queryResult.parameters.CrashConditionIntvar.Count(); i++)
+                    {
+                        intconditions.Add(request.queryResult.parameters.CrashConditionIntvar[i].CrashConditionInt + " " + request.queryResult.parameters.CrashConditionIntvar[i].number.ToString());
+                    }
+                    break;
+                case "FactVehicle":
+                    for (int i = 0; i < request.queryResult.parameters.VehicleConditionIntvar.Count(); i++)
+                    {
+                        intconditions.Add(request.queryResult.parameters.VehicleConditionIntvar[i].VehicleConditionInt + " " + request.queryResult.parameters.VehicleConditionIntvar[i].number.ToString());
+                    }
+                    break;
             }
             return intconditions;
         }

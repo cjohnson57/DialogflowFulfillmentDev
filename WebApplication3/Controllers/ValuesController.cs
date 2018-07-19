@@ -34,8 +34,8 @@ namespace WebApplication3.Controllers
         {
             string intent = request.queryResult.intent.displayName;
             FulfillmentFunctions ff = new FulfillmentFunctions();
-            try
-            {
+            //try
+            //{
                 switch (intent)
                 {
                     case "FindReport":
@@ -57,8 +57,8 @@ namespace WebApplication3.Controllers
                     case "Query.Vehicles.conditions":
                         return respond(ff.Query(request));
                 }
-            }
-            catch { }
+            //}
+            //catch { }
 
             return respond("Hello World");
         }
