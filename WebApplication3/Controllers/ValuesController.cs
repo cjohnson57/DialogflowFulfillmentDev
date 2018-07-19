@@ -30,6 +30,7 @@ namespace WebApplication3.Controllers
         }
 
         // POST api/values
+        //POST is the only API function I use since it's the one Dialogflow uses.
         public IHttpActionResult Post([FromBody]ApiAiRequest request)
         {
             string intent = request.queryResult.intent.displayName;
@@ -63,6 +64,7 @@ namespace WebApplication3.Controllers
             return respond("Hello World");
         }
 
+        //This function creates the response to send back to Dialogflow.
         public IHttpActionResult respond(string responsetext)
         {
             ApiAiResponse response = new ApiAiResponse();

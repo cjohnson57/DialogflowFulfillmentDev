@@ -5,6 +5,25 @@ using System.Web;
 
 namespace WebApplication3.Models
 {
+    //These classes were generated using http://json2csharp.com/, based on the json files sent and received by Dialogflow.
+
+    //This is the class for the json sent by Dialogflow to this application.
+    public class ApiAiRequest
+    {
+        public string responseId { get; set; }
+        public QueryResult queryResult { get; set; }
+        public OriginalDetectIntentRequest originalDetectIntentRequest { get; set; }
+        public string session { get; set; }
+    }
+
+    //This is the much simpler class for the json this application sends back to Dialogflow.
+    public class ApiAiResponse
+    {
+        public string fulfillmentText { get; set; }
+        public List<object> outputContexts { get; set; }
+    }
+
+    //These parameters are defined in the Dialogflow console
     public class Parameters
     {
         public string year { get; set; }
@@ -50,20 +69,6 @@ namespace WebApplication3.Models
         public string VehicleConditionInt { get; set; }
     }
 
-
-    //public class Parameters2
-    //{
-    //    public string codeoriginal { get; set; }
-    //    public string code { get; set; }
-    //    public string year { get; set; }
-    //    public string yearoriginal { get; set; }
-    //    public string Topic { get; set; }
-    //    public string KeyWord { get; set; }
-    //    public string query { get; set; }
-    //    public string qyear1 { get; set; }
-    //    public string qyear2 { get; set; }
-    //}
-
     public class OutputContext
     {
         public string name { get; set; }
@@ -96,19 +101,5 @@ namespace WebApplication3.Models
     public class OriginalDetectIntentRequest
     {
         public Payload payload { get; set; }
-    }
-
-    public class ApiAiRequest
-    {
-        public string responseId { get; set; }
-        public QueryResult queryResult { get; set; }
-        public OriginalDetectIntentRequest originalDetectIntentRequest { get; set; }
-        public string session { get; set; }
-    }
-
-    public class ApiAiResponse
-    {
-        public string fulfillmentText { get; set; }
-        public List<object> outputContexts { get; set; }
     }
 }
