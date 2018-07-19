@@ -9,6 +9,22 @@ All other files are default asp.net new project files.
 
 The purpose of this application is to develop the bot before in the future integrating it with datareports.lsu.edu.
 
-Currently, all the bot can do is give the URL for a report when provided the report's year and code.
-In the future it's planned to be able to assist the user in finding reports based on the report's name and topic,
-and later to use prepared queries for the user to ask quick statistics without looking at a report.
+Currently the bot can give a URL for a report when provided the code and year, search for reports based on topics and keywords, and build some simple queries based on conditions given by the user.
+
+For the query functionality, here is an example phrase given by the user:
+
+    driver males older than 25 in 2012
+
+Which will then build this SQL query:
+
+    SELECT COUNT(*) FROM FactPerson WHERE PersonType = 'A' AND Sex = 'M' AND Age > 25 AND PersonOrigin = '2012'
+    
+And return this as the result:
+
+    Here are the conditions we considered:
+    Person: Driver
+    Sex: Male
+    Age > 25
+    In 2012
+    Here is the result from those conditions:
+    107514
