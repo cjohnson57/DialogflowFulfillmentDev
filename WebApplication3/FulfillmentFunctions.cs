@@ -24,11 +24,11 @@ namespace WebApplication3
         public string FindReport(ApiAiRequest request)
         {
 
-            if (request.queryResult.parameters.year != "" && request.queryResult.parameters.year != "" && request.queryResult.parameters.year != null && request.queryResult.parameters.year != null)
+            if (!string.IsNullOrEmpty(request.queryResult.parameters.year) && !string.IsNullOrEmpty(request.queryResult.parameters.code))
             {
                 return GiveURL(request);
             }
-            else if (request.queryResult.parameters.year != "")
+            else if (!string.IsNullOrEmpty(request.queryResult.parameters.year))
             {
                 return CheckYear(request);
             }
@@ -46,7 +46,7 @@ namespace WebApplication3
             }
             else
             {
-                if (request.queryResult.parameters.code != "" && request.queryResult.parameters.code != null)
+                if (!string.IsNullOrEmpty(request.queryResult.parameters.code))
                 {
                     return GiveURL(request);
                 }
@@ -59,21 +59,21 @@ namespace WebApplication3
 
         public string GiveURL(ApiAiRequest request)
         {
-            if (request.queryResult.parameters.year != "" && request.queryResult.parameters.code != "" && request.queryResult.parameters.code.ToUpper() != "SUMMARY" && request.queryResult.parameters.year != null && request.queryResult.parameters.year != null)
+            if (!string.IsNullOrEmpty(request.queryResult.parameters.year) && !string.IsNullOrEmpty(request.queryResult.parameters.code) && request.queryResult.parameters.code.ToUpper() != "SUMMARY")
             {
                 string url = "http://datareports.lsu.edu/Reports.aspx?yr=" + request.queryResult.parameters.year + "&rpt=" + request.queryResult.parameters.code + "&p=ci";
                 return "Here is your URL: " + url;
             }
-            else if (request.queryResult.parameters.year != "" && request.queryResult.parameters.code != "" && request.queryResult.parameters.code.ToUpper() == "SUMMARY" && request.queryResult.parameters.year != null && request.queryResult.parameters.year != null)
+            else if (!string.IsNullOrEmpty(request.queryResult.parameters.year) && !string.IsNullOrEmpty(request.queryResult.parameters.code) && request.queryResult.parameters.code.ToUpper() == "SUMMARY")
             {
                 string url = "http://datareports.lsu.edu/Reports/TrafficReports/" + request.queryResult.parameters.year + "/Summary/Summary.asp";
                 return "Here is your URL: " + url;
             }
-            else if (request.queryResult.parameters.year != "" && request.queryResult.parameters.year != null)
+            else if (!string.IsNullOrEmpty(request.queryResult.parameters.year))
             {
                 return "What is the code of this report?";
             }
-            else if (request.queryResult.parameters.code != "" && request.queryResult.parameters.code != null)
+            else if (!string.IsNullOrEmpty(request.queryResult.parameters.code))
             {
                 return "What year would you like to find this report for?";
             }
@@ -205,7 +205,7 @@ namespace WebApplication3
         private string QueryQueryBuilder(ApiAiRequest request)
         {
             string table = "";
-            if (request.queryResult.parameters.Table != "" && request.queryResult.parameters.Table != null)
+            if (!string.IsNullOrEmpty(request.queryResult.parameters.Table))
             {
                 table = request.queryResult.parameters.Table;
             }
@@ -244,9 +244,16 @@ namespace WebApplication3
             }
             if(request.queryResult.parameters.year2 != "" && request.queryResult.parameters.year2 != null)
             {
-                query += table.Replace("Fact", "") + "Origin >= '" + request.queryResult.parameters.year1 + "' AND ";
-                query += table.Replace("Fact", "") + "Origin <= '" + request.queryResult.parameters.year2 + "'";
-
+                if(int.Parse(request.queryResult.parameters.year2) > int.Parse(request.queryResult.parameters.year1))
+                {
+                    query += table.Replace("Fact", "") + "Origin >= '" + request.queryResult.parameters.year1 + "' AND ";
+                    query += table.Replace("Fact", "") + "Origin <= '" + request.queryResult.parameters.year2 + "'";
+                }
+                else
+                {
+                    query += table.Replace("Fact", "") + "Origin >= '" + request.queryResult.parameters.year2 + "' AND ";
+                    query += table.Replace("Fact", "") + "Origin <= '" + request.queryResult.parameters.year1 + "'";
+                }
             }
             else
             {

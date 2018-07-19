@@ -34,19 +34,19 @@ namespace WebApplication3.Models
 
     public class PersonConditionIntvar
     {
-        public int number { get; set; }
+        public double number { get; set; }
         public string PersonConditionInt { get; set; }
     }
 
     public class CrashConditionIntvar
     {
-        public int number { get; set; }
+        public double number { get; set; }
         public string CrashConditionInt { get; set; }
     }
 
     public class VehicleConditionIntvar
     {
-        public int number { get; set; }
+        public double number { get; set; }
         public string VehicleConditionInt { get; set; }
     }
 
