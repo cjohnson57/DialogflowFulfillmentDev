@@ -313,25 +313,71 @@ namespace WebApplication3
             switch (table)
             {
                 case "FactPerson":
-                    for (int i = 0; i < request.queryResult.parameters.PersonConditionIntvar.Count(); i++)
+                    for (int i = 0; i < request.queryResult.parameters.PersonConditionIntVar.Count(); i++)
                     {
-                        intconditions.Add(request.queryResult.parameters.PersonConditionIntvar[i].PersonConditionInt + " " + request.queryResult.parameters.PersonConditionIntvar[i].number.ToString());
+                        if(string.IsNullOrEmpty(request.queryResult.parameters.PersonConditionIntVar[i].Inequality))
+                        {
+                            intconditions.Add(request.queryResult.parameters.PersonConditionIntVar[i].PersonConditionInt + " = " + request.queryResult.parameters.PersonConditionIntVar[i].number.ToString());
+                        }
+                        else if(string.IsNullOrEmpty(request.queryResult.parameters.PersonConditionIntVar[i].PersonConditionInt))
+                        {
+                            intconditions.Add(request.queryResult.parameters.PersonConditionIntVar[i].Inequality + " " + request.queryResult.parameters.PersonConditionIntVar[i].number.ToString());
+                        }
+                        else
+                        {
+                            intconditions.Add(request.queryResult.parameters.PersonConditionIntVar[i].PersonConditionInt + " " + request.queryResult.parameters.PersonConditionIntVar[i].Inequality + " " + request.queryResult.parameters.PersonConditionIntVar[i].number.ToString());
+                        }
+                        intconditions[i] = CheckForAgeThing(intconditions[i]);
                     }
                     break;
                 case "FactCrash":
-                    for (int i = 0; i < request.queryResult.parameters.CrashConditionIntvar.Count(); i++)
+                    for (int i = 0; i < request.queryResult.parameters.CrashConditionIntVar.Count(); i++)
                     {
-                        intconditions.Add(request.queryResult.parameters.CrashConditionIntvar[i].CrashConditionInt + " " + request.queryResult.parameters.CrashConditionIntvar[i].number.ToString());
+                        if (string.IsNullOrEmpty(request.queryResult.parameters.CrashConditionIntVar[i].Inequality))
+                        {
+                            intconditions.Add(request.queryResult.parameters.CrashConditionIntVar[i].CrashConditionInt + " = " + request.queryResult.parameters.CrashConditionIntVar[i].number.ToString());
+                        }
+                        else
+                        {
+                            intconditions.Add(request.queryResult.parameters.CrashConditionIntVar[i].CrashConditionInt + " " + request.queryResult.parameters.CrashConditionIntVar[i].Inequality + " " + request.queryResult.parameters.CrashConditionIntVar[i].number.ToString());
+                        }
                     }
                     break;
                 case "FactVehicle":
-                    for (int i = 0; i < request.queryResult.parameters.VehicleConditionIntvar.Count(); i++)
+                    for (int i = 0; i < request.queryResult.parameters.VehicleConditionIntVar.Count(); i++)
                     {
-                        intconditions.Add(request.queryResult.parameters.VehicleConditionIntvar[i].VehicleConditionInt + " " + request.queryResult.parameters.VehicleConditionIntvar[i].number.ToString());
+                        if (string.IsNullOrEmpty(request.queryResult.parameters.VehicleConditionIntVar[i].Inequality))
+                        {
+                            intconditions.Add(request.queryResult.parameters.VehicleConditionIntVar[i].VehicleConditionInt + " = " + request.queryResult.parameters.VehicleConditionIntVar[i].number.ToString());
+                        }
+                        else
+                        {
+                            intconditions.Add(request.queryResult.parameters.VehicleConditionIntVar[i].VehicleConditionInt + " " + request.queryResult.parameters.VehicleConditionIntVar[i].Inequality  + " " + request.queryResult.parameters.VehicleConditionIntVar[i].number.ToString());
+                        }
                     }
                     break;
             }
             return intconditions;
+        }
+
+        private string CheckForAgeThing(string s)
+        {
+            if (s.IndexOf("Age") > -1)
+            {
+                if(s.IndexOf("Age", s.IndexOf("Age") + 1) > -1)
+                {
+                    s = s.Remove(s.IndexOf("Age"), 4);
+                    return s;
+                }
+                else
+                {
+                    return s;
+                }
+            }
+            else
+            {
+                return s;
+            }
         }
     }
 }

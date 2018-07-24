@@ -33,7 +33,7 @@ namespace WebApplication3.Controllers
         //POST is the only API function I use since it's the one Dialogflow uses.
         public IHttpActionResult Post([FromBody]ApiAiRequest request)
         {
-            string intent = request.queryResult.intent.displayName;
+          string intent = request.queryResult.intent.displayName;
             FulfillmentFunctions ff = new FulfillmentFunctions();
             //try
             //{

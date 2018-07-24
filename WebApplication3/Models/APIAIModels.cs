@@ -34,11 +34,11 @@ namespace WebApplication3.Models
         public List<string> KeyWords { get; set; }
         public string Table { get; set; }
         public List<string> PersonConditions { get; set; }
-        public List<PersonConditionIntvar> PersonConditionIntvar { get; set; }
+        public List<PersonConditionIntVar> PersonConditionIntVar { get; set; }
         public List<string> CrashConditions { get; set; }
-        public List<CrashConditionIntvar> CrashConditionIntvar { get; set; }
+        public List<CrashConditionIntVar> CrashConditionIntVar { get; set; }
         public List<string> VehicleConditions { get; set; }
-        public List<VehicleConditionIntvar> VehicleConditionIntvar { get; set; }
+        public List<VehicleConditionIntVar> VehicleConditionIntVar { get; set; }
     }
 
     public class Text
@@ -51,22 +51,25 @@ namespace WebApplication3.Models
         public Text text { get; set; }
     }
 
-    public class PersonConditionIntvar
+    public class PersonConditionIntVar
     {
         public double number { get; set; }
         public string PersonConditionInt { get; set; }
+        public string Inequality { get; set; }
     }
 
-    public class CrashConditionIntvar
+    public class CrashConditionIntVar
     {
         public double number { get; set; }
         public string CrashConditionInt { get; set; }
+        public string Inequality { get; set; }
     }
 
-    public class VehicleConditionIntvar
+    public class VehicleConditionIntVar
     {
         public double number { get; set; }
         public string VehicleConditionInt { get; set; }
+        public string Inequality { get; set; }
     }
 
     public class OutputContext
