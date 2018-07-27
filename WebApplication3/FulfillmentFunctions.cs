@@ -258,8 +258,9 @@ namespace WebApplication3
             {
                 if(conditions[i].Contains(";"))
                 {
-                    query += conditions[i].Substring(0, conditions[i].IndexOf(";")) + " AND "; 
-                    conditionsforpeople += conditions[i].Substring(conditions[i].IndexOf(";") + 1, conditions[i].Length - conditions[i].IndexOf(";") - 1) + Environment.NewLine;
+                    string[] s = conditions[i].Split(';');
+                    query += s[0] + " AND "; 
+                    conditionsforpeople += s[1] + Environment.NewLine;
                 }
                 else
                 {
@@ -275,22 +276,43 @@ namespace WebApplication3
                 //Puts whichever year is smaller first.
                 if (int.Parse(year2) > int.Parse(year1))
                 {
-                    query += table.Replace("Fact", "") + "Origin >= '" + year1 + "' AND ";
-                    query += table.Replace("Fact", "") + "Origin <= '" + year2 + "'";
+                    if(table == "FactCrash")
+                    {
+                        query += "LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year1 + "'";
+                        query += " AND LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year2 + "'";
+                    }
+                    else
+                    {
+                        query += "CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year1 + "')";
+                        query += " AND CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year2 + "')";
+                    }
                     conditionsforpeople += "From " + year1 + "-" + year2 + Environment.NewLine;
                 }
                 else
                 {
-                    query += table.Replace("Fact", "") + "Origin >= '" + year2 + "' AND ";
-                    query += table.Replace("Fact", "") + "Origin <= '" + year1 + "'";
+                    if (table == "FactCrash")
+                    {
+                        query += "LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year1 + "'";
+                        query += " AND LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year2 + "'";
+                    }
+                    else
+                    {
+                        query += "CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year1 + "')";
+                        query += " AND CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year2 + "')";
+                    }
                     conditionsforpeople += "From " + year2 + "-" + year1 + Environment.NewLine;
                 }
             }
             else
             {
-                //The name of the tables are FactX, and the column name in the tables containing the year the data came from is called XOrigin.
-                //So this turns FactX into XOrigin, and checks if it's equal to the year specified by the user.
-                query += table.Replace("Fact", "") + "Origin = '" + request.queryResult.parameters.year1 + "'";
+                if (table == "FactCrash")
+                {
+                    query += "LEFT(DateSK, 4) = '" + request.queryResult.parameters.year1 + "'";
+                }
+                else
+                {
+                    query += "CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) = '" + request.queryResult.parameters.year1 + "')";
+                }
                 conditionsforpeople += "In " + request.queryResult.parameters.year1 + Environment.NewLine;
             }
             doublestring ds = new doublestring();
