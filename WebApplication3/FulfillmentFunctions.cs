@@ -185,34 +185,50 @@ namespace WebApplication3
                     query += (and ? " AND [KEYWORDS] LIKE '%" + keywords[i] + "%'" : " OR [KEYWORDS] LIKE '%" + keywords[i] + "%'");
                 }
             }
-            query += ") AND [ACTIVE] = 1 ORDER BY[REPORTLETTER], [SUBHEADERNUM], [POSTNUMBER]";
+            query += ") AND [ACTIVE] = 1 ORDER BY [REPORTLETTER], [SUBHEADERNUM], [POSTNUMBER]";
             return query;
         }
 
         //This is the first function for the querying ability of the bot.
         public string Query(ApiAiRequest request)
         {
-            SqlConnection cn = new SqlConnection("Data Source=dev-sqlsrv;Initial Catalog=CRASHDWHSRG;Integrated Security=true");
-            doublestring ds = QueryQueryBuilder(request);
-            string query = ds.string1;
-            string conditionsforpeople = ds.string2;
-            SqlCommand cmd = new SqlCommand(query, cn);
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
-            DataTable tbl = new DataTable();
+            using (SqlConnection cn = new SqlConnection("Data Source=dev-sqlsrv;Initial Catalog=CRASHDWHSRG;Integrated Security=true"))
+            {
+                Doublestring ds = QueryQueryBuilder(request);
+                string query = ds.string1;
+                string conditionsforpeople = ds.string2;
+                SqlCommand cmd = new SqlCommand(query, cn);
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                DataTable tbl = new DataTable();
 
-            cn.Open();
-            da.Fill(tbl);
-            cn.Close();
+                cn.Open();
+                da.Fill(tbl);
 
-            string s = "Here are the conditions we considered:" + Environment.NewLine;
-            s += conditionsforpeople;
-            s += "Here is the result from those conditions:" + Environment.NewLine;
-            s += tbl.Rows[0].ItemArray[0];
-            return s;
+                string s = "Here are the conditions we considered:" + Environment.NewLine;
+                s += conditionsforpeople;
+                s += "Here is the result from those conditions:" + Environment.NewLine;
+                s += tbl.Rows[0].ItemArray[0];
+
+                //query = "SELECT [ParishCode], [Parish] FROM [CRASHDWHSRG].[dbo].[DimParish]";
+                //cmd = new SqlCommand(query, cn);
+                //da = new SqlDataAdapter(cmd);
+                //tbl = new DataTable();
+                //da.Fill(tbl);
+                //string a = "";
+                //for(int i = 1; i <= 64; i++)
+                //{
+                //    a += "{" + Environment.NewLine + "\"value\": \"ParishCode = '" + tbl.Rows[i].ItemArray[0] + "';Parish: " + tbl.Rows[i].ItemArray[1] + "\",";
+                //    a += Environment.NewLine + "\"synonyms\": [" + Environment.NewLine + "\"" + tbl.Rows[i].ItemArray[1] + "\"" + Environment.NewLine + "]" + Environment.NewLine + "}," + Environment.NewLine;
+                //}
+
+
+
+                return s;
+            }        
         }
 
         //This function builds the query for the query functionality.
-        private doublestring QueryQueryBuilder(ApiAiRequest request)
+        private Doublestring QueryQueryBuilder(ApiAiRequest request)
         {
             string table = "";
             //If the base parameters don't contains the table (which they probably won't) searches the output contexts for the table's value until it finds it.
@@ -240,12 +256,15 @@ namespace WebApplication3
             {
                 case "FactPerson":
                     conditions = request.queryResult.parameters.PersonConditions;
+                    conditionsforpeople += "People" + Environment.NewLine;
                     break;
                 case "FactCrash":
                     conditions = request.queryResult.parameters.CrashConditions;
+                    conditionsforpeople += "Crashes" + Environment.NewLine;
                     break;
                 case "FactVehicle":
                     conditions = request.queryResult.parameters.VehicleConditions;
+                    conditionsforpeople += "Vehicles" + Environment.NewLine;
                     break;
             }
             List<string> conditionsintvars = GetIntVars(request, table);
@@ -315,13 +334,15 @@ namespace WebApplication3
                 }
                 conditionsforpeople += "In " + request.queryResult.parameters.year1 + Environment.NewLine;
             }
-            doublestring ds = new doublestring();
-            ds.string1 = query;
-            ds.string2 = conditionsforpeople;
+            Doublestring ds = new Doublestring
+            {
+                string1 = query,
+                string2 = conditionsforpeople
+            };
             return ds;
         }
 
-        struct doublestring
+        struct Doublestring
         {
             public string string1;
             public string string2;
