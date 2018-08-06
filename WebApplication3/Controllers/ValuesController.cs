@@ -45,11 +45,11 @@ namespace WebApplication3.Controllers
                         return respond(ff.GiveURL(request));
                     case "FindReport.year":
                         return respond(ff.CheckYear(request));
-                    case "FindReport.topics":
+                    case "SearchReport.topics":
                         return respond(ff.ListTopics(request));
-                    case "FindReport.listbytopic":
+                    case "SearchReport.topics.search":
                         return respond(ff.ListByTopic(request));
-                    case "FindReport.listbykeyword":
+                    case "SearchReport.keywords.search":
                         return respond(ff.ListByKeyword(request, true));
                     case "Query.People.conditions":
                         return respond(ff.Query(request));

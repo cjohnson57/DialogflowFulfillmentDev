@@ -15,6 +15,7 @@ using WebApplication3.Controllers;
 using System.Data.SqlClient;
 using System.Data;
 using System.Data.SQLite;
+using System.Text.RegularExpressions;
 
 namespace WebApplication3
 {
@@ -43,9 +44,10 @@ namespace WebApplication3
         //Checks the year given when finding a report.
         public string CheckYear(ApiAiRequest request)
         {
-            if (int.Parse(request.queryResult.parameters.year) < 2005 || int.Parse(request.queryResult.parameters.year) > DateTime.Now.Year)
+            string year = Regex.Replace(request.queryResult.parameters.year, "[^0-9.]", "");
+            if (int.Parse(year) < 2005 || int.Parse(year) > DateTime.Now.Year)
             {
-                return "Sorry, we don't have reports for year " + request.queryResult.parameters.year;
+                return "Sorry, we don't have reports for year " + year;
             }
             else
             {
@@ -55,7 +57,7 @@ namespace WebApplication3
                 }
                 else
                 {
-                    return "Alright, we will now find reports for year " + request.queryResult.parameters.year + ". If you know the code for this report, you can tell me that and the year. If not, we can search reports.";
+                    return "Alright, we will now find reports for year " + year + ". If you know the code for this report, you can tell me that and the year. If not, we can search reports.";
                 }
             }
         }
@@ -66,12 +68,14 @@ namespace WebApplication3
             //If the user asked for a summary, that has a differnet URL so it has a different statement.
             if (!string.IsNullOrEmpty(request.queryResult.parameters.year) && !string.IsNullOrEmpty(request.queryResult.parameters.code) && request.queryResult.parameters.code.ToUpper() != "SUMMARY")
             {
-                string url = "http://datareports.lsu.edu/Reports.aspx?yr=" + request.queryResult.parameters.year + "&rpt=" + request.queryResult.parameters.code + "&p=ci";
+                string year = Regex.Replace(request.queryResult.parameters.year, "[^0-9.]", "");
+                string url = "http://datareports.lsu.edu/Reports.aspx?yr=" + year + "&rpt=" + request.queryResult.parameters.code + "&p=ci";
                 return "Here is your URL: " + url;
             }
             else if (!string.IsNullOrEmpty(request.queryResult.parameters.year) && !string.IsNullOrEmpty(request.queryResult.parameters.code) && request.queryResult.parameters.code.ToUpper() == "SUMMARY")
             {
-                string url = "http://datareports.lsu.edu/Reports/TrafficReports/" + request.queryResult.parameters.year + "/Summary/Summary.asp";
+                string year = Regex.Replace(request.queryResult.parameters.year, "[^0-9.]", "");
+                string url = "http://datareports.lsu.edu/Reports/TrafficReports/" + year + "/Summary/Summary.asp";
                 return "Here is your URL: " + url;
             }
             else if (!string.IsNullOrEmpty(request.queryResult.parameters.year))
@@ -194,20 +198,34 @@ namespace WebApplication3
         {
             using (SqlConnection cn = new SqlConnection("Data Source=dev-sqlsrv;Initial Catalog=CRASHDWHSRG;Integrated Security=true"))
             {
-                Doublestring ds = QueryQueryBuilder(request);
-                string query = ds.string1;
-                string conditionsforpeople = ds.string2;
+                TripleString ts = QueryQueryBuilder(request);
+                string query = ts.string1;
+                string conditionsforpeople = ts.string2;
+                string query_total = ts.string3;
                 SqlCommand cmd = new SqlCommand(query, cn);
                 SqlDataAdapter da = new SqlDataAdapter(cmd);
                 DataTable tbl = new DataTable();
 
                 cn.Open();
                 da.Fill(tbl);
+                cn.Close();
+
+                cmd = new SqlCommand(query_total, cn);
+                da = new SqlDataAdapter(cmd);
+                DataTable tbl2 = new DataTable();
+
+                cn.Open();
+                da.Fill(tbl2);
+                cn.Close();
+
+                double result = double.Parse(tbl.Rows[0].ItemArray[0].ToString());
+                double total = double.Parse(tbl2.Rows[0].ItemArray[0].ToString());
+                double percent = (result / total) * 100;
 
                 string s = "Here are the conditions we considered:" + Environment.NewLine;
                 s += conditionsforpeople;
                 s += "Here is the result from those conditions:" + Environment.NewLine;
-                s += tbl.Rows[0].ItemArray[0];
+                s +=  result + " (" + percent + "%)";
 
                 //query = "SELECT [ParishCode], [Parish] FROM [CRASHDWHSRG].[dbo].[DimParish]";
                 //cmd = new SqlCommand(query, cn);
@@ -228,7 +246,7 @@ namespace WebApplication3
         }
 
         //This function builds the query for the query functionality.
-        private Doublestring QueryQueryBuilder(ApiAiRequest request)
+        private TripleString QueryQueryBuilder(ApiAiRequest request)
         {
             string table = "";
             //If the base parameters don't contains the table (which they probably won't) searches the output contexts for the table's value until it finds it.
@@ -248,6 +266,7 @@ namespace WebApplication3
                 }
             }
             string query = "SELECT COUNT(*) FROM " + table + " WHERE ";
+            string query_total = query;
             string conditionsforpeople = "";
             List<string> conditions = new List<string>();
             //Gets the base conditions based on which table the query is using.
@@ -290,6 +309,7 @@ namespace WebApplication3
             //Queries can be either for a single year or a range of years. If year2 is empty it's for a single year.
             if (!string.IsNullOrEmpty(request.queryResult.parameters.year2))
             {
+                string temp = "";
                 string year1 = request.queryResult.parameters.year1;
                 string year2 = request.queryResult.parameters.year2;
                 //Puts whichever year is smaller first.
@@ -297,13 +317,13 @@ namespace WebApplication3
                 {
                     if(table == "FactCrash")
                     {
-                        query += "LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year1 + "'";
-                        query += " AND LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year2 + "'";
+                        temp = "LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year1 + "'";
+                        temp += " AND LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year2 + "'";
                     }
                     else
                     {
-                        query += "CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year1 + "')";
-                        query += " AND CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year2 + "')";
+                        temp = "CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year1 + "')";
+                        temp += " AND CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year2 + "')";
                     }
                     conditionsforpeople += "From " + year1 + "-" + year2 + Environment.NewLine;
                 }
@@ -311,41 +331,48 @@ namespace WebApplication3
                 {
                     if (table == "FactCrash")
                     {
-                        query += "LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year1 + "'";
-                        query += " AND LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year2 + "'";
+                        temp = "LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year1 + "'";
+                        temp += " AND LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year2 + "'";
                     }
                     else
                     {
-                        query += "CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year1 + "')";
-                        query += " AND CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year2 + "')";
+                        temp = "CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) <= '" + request.queryResult.parameters.year1 + "')";
+                        temp += " AND CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) >= '" + request.queryResult.parameters.year2 + "')";
                     }
                     conditionsforpeople += "From " + year2 + "-" + year1 + Environment.NewLine;
                 }
+                query += temp;
+                query_total += temp;
             }
             else
             {
+                string temp = "";
                 if (table == "FactCrash")
                 {
-                    query += "LEFT(DateSK, 4) = '" + request.queryResult.parameters.year1 + "'";
+                    temp = "LEFT(DateSK, 4) = '" + request.queryResult.parameters.year1 + "'";
                 }
                 else
                 {
-                    query += "CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) = '" + request.queryResult.parameters.year1 + "')";
+                    temp= "CrashSK in (select CrashPK from FactCrash where LEFT(DateSK, 4) = '" + request.queryResult.parameters.year1 + "')";
                 }
+                query += temp;
+                query_total += temp;
                 conditionsforpeople += "In " + request.queryResult.parameters.year1 + Environment.NewLine;
             }
-            Doublestring ds = new Doublestring
+            TripleString ts = new TripleString
             {
                 string1 = query,
-                string2 = conditionsforpeople
+                string2 = conditionsforpeople,
+                string3 = query_total
             };
-            return ds;
+            return ts;
         }
 
-        struct Doublestring
+        struct TripleString
         {
             public string string1;
             public string string2;
+            public string string3;
         }
 
         //IntVars are the name I use to refer to condition variables which involve a number. These are different from other conditions because they have a variable aspect
