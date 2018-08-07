@@ -9,7 +9,11 @@
 
     <script type="text/javascript">
         (function (d, m) {
-            var o = { "appId": "37ecde6ac0350ee01460d89570a4f9913", "isAnonymousChat": true, "agentId": "carts", "agentName": "Carts", "conversationTitle": "CARTSBot", "email": "","botIds":["cartsbot"]};
+            var o = {
+                "appId": "37ecde6ac0350ee01460d89570a4f9913", "isAnonymousChat": true, "agentId": "cartsbot",
+                "agentName": "CARTSBot", "conversationTitle": "CARTSBot", "email": "", "botIds": ["cartsbot"],
+                "chatLauncherHtml": "<img src='/Content/Icon.png' width='70px' height='70px'/>"
+            };
             var s = document.createElement("script"); s.type = "text/javascript"; s.async = true;
             s.src = "https://api.kommunicate.io/kommunicate.app";
             var h = document.getElementsByTagName("head")[0]; h.appendChild(s);

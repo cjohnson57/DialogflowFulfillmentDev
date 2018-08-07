@@ -220,7 +220,7 @@ namespace WebApplication3
 
                 double result = double.Parse(tbl.Rows[0].ItemArray[0].ToString());
                 double total = double.Parse(tbl2.Rows[0].ItemArray[0].ToString());
-                double percent = (result / total) * 100;
+                double percent = Math.Round((result / total) * 100, 3);
 
                 string s = "Here are the conditions we considered:" + Environment.NewLine;
                 s += conditionsforpeople;
@@ -238,8 +238,6 @@ namespace WebApplication3
                 //    a += "{" + Environment.NewLine + "\"value\": \"ParishCode = '" + tbl.Rows[i].ItemArray[0] + "';Parish: " + tbl.Rows[i].ItemArray[1] + "\",";
                 //    a += Environment.NewLine + "\"synonyms\": [" + Environment.NewLine + "\"" + tbl.Rows[i].ItemArray[1] + "\"" + Environment.NewLine + "]" + Environment.NewLine + "}," + Environment.NewLine;
                 //}
-
-
 
                 return s;
             }        

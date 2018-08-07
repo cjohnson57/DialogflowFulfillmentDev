@@ -31,6 +31,7 @@ namespace WebApplication3.Controllers
 
         // POST api/values
         //POST is the only API function I use since it's the one Dialogflow uses.
+        [Authorize]
         public IHttpActionResult Post([FromBody]ApiAiRequest request)
         {
           string intent = request.queryResult.intent.displayName;

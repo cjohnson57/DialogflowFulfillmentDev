@@ -15,3 +15,26 @@ select,
 textarea {
     max-width: 280px;
 }
+
+/*Kommunicate stuff*/
+.mck-box-top {
+    background-color: #461D7C !important;
+}
+
+#mck-msg-new.mck-btn {
+    background-color: #461D7C !important;
+}
+
+.mck-msg-left .mck-msg-box {
+    background-color: #461D7C!important;
+    color: white!important;
+}
+
+.mck-msg-box a {
+    color: white !important;
+}
+
+.mck-msg-right .mck-msg-box {
+    background-color: #FDD023!important;
+    color: black!important;
+}
