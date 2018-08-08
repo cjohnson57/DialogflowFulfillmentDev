@@ -95,78 +95,76 @@ namespace WebApplication3
         //Gives the user a list of topics that reports may fall under.
         public string ListTopics(ApiAiRequest request)
         {
-            SQLiteConnection cn = new SQLiteConnection("Data Source=|DataDirectory|\\CRASH_LINKS.sqlite3; Version=3");
-            //Once we go back to MSSS: [CRASH_LINKS].[dbo].[TRAFFIC_CMV_HEADERS]
-            string query = "SELECT [REPORTHEADER], [REPORTHEADERLONG] From TRAFFIC_CMV_HEADERS";
-            SQLiteCommand cmd = new SQLiteCommand(query, cn);
-            SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
-            DataTable tbl = new DataTable();
-
-            cn.Open();
-            da.Fill(tbl);
-            cn.Close();
-
-            string s = "Here are the topics:";
-            for (int i = 0; i < tbl.Rows.Count; i++)
+            using (SQLiteConnection cn = new SQLiteConnection("Data Source=|DataDirectory|\\CRASH_LINKS.sqlite3; Version=3"))
             {
-                s += Environment.NewLine + tbl.Rows[i].ItemArray[0] + "- " + tbl.Rows[i].ItemArray[1];
-            }
+                string query = "SELECT [REPORTHEADER], [REPORTHEADERLONG] From TRAFFIC_CMV_HEADERS";
+                SQLiteCommand cmd = new SQLiteCommand(query, cn);
 
-            return s;
+                string s = "Here are the topics:";
+
+                cn.Open();
+                SQLiteDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    s += Environment.NewLine + dr[0] + "- " + dr[1];
+                }
+                cn.Close();
+
+                return s;
+            }
         }
 
         //When the user gives a topic, lists all reports belonging to that topic.
         public string ListByTopic(ApiAiRequest request)
         {
-            SQLiteConnection cn = new SQLiteConnection("Data Source=|DataDirectory|\\CRASH_LINKS.sqlite3; Version=3");
-            string query = "SELECT [REPORTLETTER],[SUBHEADERNUM],[POSTNUMBER],[SUBHEADER] FROM TRAFFIC WHERE [REPORTLETTER] = '" + request.queryResult.parameters.Topic + "' AND [ACTIVE] = 1 ORDER BY [REPORTLETTER], [SUBHEADERNUM], [POSTNUMBER]";
-            SQLiteCommand cmd = new SQLiteCommand(query, cn);
-            SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
-            DataTable tbl = new DataTable();
-
-            cn.Open();
-            da.Fill(tbl);
-            cn.Close();
-
-            string s = "Here are the reports in this topic:";
-            for (int i = 0; i < tbl.Rows.Count; i++)
+            using (SQLiteConnection cn = new SQLiteConnection("Data Source=|DataDirectory|\\CRASH_LINKS.sqlite3; Version=3"))
             {
-                s += Environment.NewLine + tbl.Rows[i].ItemArray[0] + tbl.Rows[i].ItemArray[1] + tbl.Rows[i].ItemArray[2] + "- " + tbl.Rows[i].ItemArray[3];
-            }
+                string query = "SELECT [REPORTLETTER],[SUBHEADERNUM],[POSTNUMBER],[SUBHEADER] FROM TRAFFIC WHERE [REPORTLETTER] = '" + request.queryResult.parameters.Topic + "' AND [ACTIVE] = 1 ORDER BY [REPORTLETTER], [SUBHEADERNUM], [POSTNUMBER]";
+                SQLiteCommand cmd = new SQLiteCommand(query, cn);
 
-            return s;
+                string s = "Here are the reports in this topic:";
+
+                cn.Open();
+                SQLiteDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    s += Environment.NewLine + dr[0] + dr[1] + dr[2] + "- " + dr[3];
+                }
+                cn.Close();
+
+                return s;
+            }
         }
 
         //When the user gives keyword(s), lists reports containing those keywords.
         public string ListByKeyword(ApiAiRequest request, bool and)
         {
-            SQLiteConnection cn = new SQLiteConnection("Data Source=|DataDirectory|\\CRASH_LINKS.sqlite3; Version=3");
-            //The "and" bool decides whether the query should fetch reports containing all keywords (x AND y) or all reports containing any of the keywords (x OR y)
-            string query = KeywordQueryBuilder(request, and);
-            SQLiteCommand cmd = new SQLiteCommand(query, cn);
-            SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
-            DataTable tbl = new DataTable();
-
-            cn.Open();
-            da.Fill(tbl);
-            cn.Close();
-
-            //On the first run, "and" is true. x AND y is more likely to help the user find what they're looking for.
-            //If no results are returned this way, the function runs again with "and" being false, so the user can still get some results.
-            string s = (and ? "Here are the reports that contain these keywords:" : "We could not find any results that contain all of these keywords, so here are results that contain one or more of these keywords:");
-            if (tbl.Rows.Count > 0)
+            using (SQLiteConnection cn = new SQLiteConnection("Data Source=|DataDirectory|\\CRASH_LINKS.sqlite3; Version=3"))
             {
-                for (int i = 0; i < tbl.Rows.Count; i++)
+                //The "and" bool decides whether the query should fetch reports containing all keywords (x AND y) or all reports containing any of the keywords (x OR y)
+                string query = KeywordQueryBuilder(request, and);
+                SQLiteCommand cmd = new SQLiteCommand(query, cn);
+
+                string s = (and ? "Here are the reports that contain these keywords:" : "We could not find any results that contain all of these keywords, so here are results that contain one or more of these keywords:");
+
+                cn.Open();
+                SQLiteDataReader dr = cmd.ExecuteReader();
+                bool foundatleastone = false;
+                while(dr.Read())
                 {
-                    s += Environment.NewLine + tbl.Rows[i].ItemArray[0] + tbl.Rows[i].ItemArray[1] + tbl.Rows[i].ItemArray[2] + "- " + tbl.Rows[i].ItemArray[3];
+                    s += Environment.NewLine + dr[0] + dr[1] + dr[2] + "- " + dr[3];
+                    foundatleastone = true;
                 }
-            }
-            else
-            {
-                return (and ? ListByKeyword(request, false) : "Could not find results for these keywords.");
-            }
+                cn.Close();
+                //On the first run, "and" is true. x AND y is more likely to help the user find what they're looking for.
+                //If no results are returned this way, the function runs again with "and" being false, so the user can still get some results.
+                if (!foundatleastone)
+                {
+                    return (and ? ListByKeyword(request, false) : "Could not find results for these keywords.");
+                }
 
-            return s;
+                return s;
+            }
         }
 
         //Builds the query for searching by keyword.
@@ -203,41 +201,33 @@ namespace WebApplication3
                 string conditionsforpeople = ts.string2;
                 string query_total = ts.string3;
                 SqlCommand cmd = new SqlCommand(query, cn);
-                SqlDataAdapter da = new SqlDataAdapter(cmd);
-                DataTable tbl = new DataTable();
 
                 cn.Open();
-                da.Fill(tbl);
+                SqlDataReader dr = cmd.ExecuteReader();
+                double result = 0;
+                while (dr.Read())
+                {
+                    result = double.Parse(dr[0].ToString());
+                }
                 cn.Close();
 
                 cmd = new SqlCommand(query_total, cn);
-                da = new SqlDataAdapter(cmd);
-                DataTable tbl2 = new DataTable();
 
                 cn.Open();
-                da.Fill(tbl2);
+                dr = cmd.ExecuteReader();
+                double total = 1;
+                while(dr.Read())
+                {
+                    total = double.Parse(dr[0].ToString());
+                }
                 cn.Close();
 
-                double result = double.Parse(tbl.Rows[0].ItemArray[0].ToString());
-                double total = double.Parse(tbl2.Rows[0].ItemArray[0].ToString());
                 double percent = Math.Round((result / total) * 100, 3);
 
                 string s = "Here are the conditions we considered:" + Environment.NewLine;
                 s += conditionsforpeople;
                 s += "Here is the result from those conditions:" + Environment.NewLine;
                 s +=  result + " (" + percent + "%)";
-
-                //query = "SELECT [ParishCode], [Parish] FROM [CRASHDWHSRG].[dbo].[DimParish]";
-                //cmd = new SqlCommand(query, cn);
-                //da = new SqlDataAdapter(cmd);
-                //tbl = new DataTable();
-                //da.Fill(tbl);
-                //string a = "";
-                //for(int i = 1; i <= 64; i++)
-                //{
-                //    a += "{" + Environment.NewLine + "\"value\": \"ParishCode = '" + tbl.Rows[i].ItemArray[0] + "';Parish: " + tbl.Rows[i].ItemArray[1] + "\",";
-                //    a += Environment.NewLine + "\"synonyms\": [" + Environment.NewLine + "\"" + tbl.Rows[i].ItemArray[1] + "\"" + Environment.NewLine + "]" + Environment.NewLine + "}," + Environment.NewLine;
-                //}
 
                 return s;
             }        
