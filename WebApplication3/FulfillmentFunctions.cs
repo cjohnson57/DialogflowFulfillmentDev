@@ -229,6 +229,7 @@ namespace WebApplication3
                 s += "Here is the result from those conditions:" + Environment.NewLine;
                 s +=  result + " (" + percent + "%)";
 
+
                 return s;
             }        
         }
