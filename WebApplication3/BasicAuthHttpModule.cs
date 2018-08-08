@@ -6,6 +6,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Web;
+using System.Data.SQLite;
 
 namespace WebHostBasicAuth.Modules
 {
@@ -32,7 +33,23 @@ namespace WebHostBasicAuth.Modules
         // TODO: Here is where you would validate the username and password.
         private static bool CheckPassword(string username, string password)
         {
-            return username == "test1" && password == "test2";
+            using (SQLiteConnection cn = new SQLiteConnection("Data Source=|DataDirectory|\\AUTHORIZATION.sqlite3; Version=3"))
+            {
+                string query = "SELECT USERNAME, PASSWORDHASH FROM BASICAUTH";
+                SQLiteCommand cmd = new SQLiteCommand(query, cn);
+                string un = "";
+                int psh = 0;
+                cn.Open();
+                SQLiteDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    un = dr[0].ToString();
+                    psh = int.Parse(dr[1].ToString());
+                }
+                cn.Close();
+
+                return username == un && password.GetHashCode() == psh;
+            }
         }
 
         private static void AuthenticateUser(string credentials)

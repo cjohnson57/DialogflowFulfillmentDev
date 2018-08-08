@@ -242,6 +242,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="App_Data\CRASH_LINKS.sqlite3" />
+    <Content Include="App_Data\AUTHORIZATION.sqlite3" />
     <None Include="Properties\PublishProfiles\WebApitest68461361351 - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
