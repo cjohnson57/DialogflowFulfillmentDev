@@ -41,36 +41,71 @@ namespace WebApplication3.Controllers
                 switch (intent)
                 {
                     case "FindReport":
-                        return respond(ff.FindReport(request));
+                        return respond(ff.FindReport(request), false);
                     case "FindReport.code":
-                        return respond(ff.GiveURL(request));
+                        return respond(ff.GiveURL(request), false);
                     case "FindReport.year":
-                        return respond(ff.CheckYear(request));
+                        return respond(ff.CheckYear(request), false);
                     case "SearchReport.topics":
-                        return respond(ff.ListTopics(request));
+                        return respond(ff.ListTopics(request), false);
                     case "SearchReport.topics.search":
-                        return respond(ff.ListByTopic(request));
+                        return respond(ff.ListByTopic(request), true);
                     case "SearchReport.keywords.search":
-                        return respond(ff.ListByKeyword(request, true));
+                        return respond(ff.ListByKeyword(request, true), true);
                     case "Query.People.conditions":
-                        return respond(ff.Query(request));
+                        return respond(ff.Query(request), false);
                     case "Query.Crashes.conditions":
-                        return respond(ff.Query(request));
+                        return respond(ff.Query(request), false);
                     case "Query.Vehicles.conditions":
-                        return respond(ff.Query(request));
+                        return respond(ff.Query(request), false);
                 }
             //}
             //catch { }
 
-            return respond("Hello World");
+            return respond("Hello World", false);
         }
 
         //This function creates the response to send back to Dialogflow.
-        public IHttpActionResult respond(string responsetext)
+        public IHttpActionResult respond(string responsetext, bool links)
         {
-            ApiAiResponse response = new ApiAiResponse();
-            response.fulfillmentText = responsetext;
-            return Json(response);
+            if(links)
+            {
+                string[] lines = responsetext.Split(Environment.NewLine.ToCharArray()[0]);
+                KommunicateResponse rs = new KommunicateResponse
+                {
+                    message = lines[0],
+                    platform = "kommunicate",
+                    metadata = new Models.Metadata()
+                    {
+                        contentType = "300",
+                        templateId = "3",
+                        payload = new List<Payload>()
+                    }
+                };
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    string code = lines[i].Split('-')[0].Remove(0, 1);
+                    Payload pl = new Payload
+                    {
+                        type = "link",
+                        url = "http://datareports.lsu.edu/Reports.aspx?yr=" + DateTime.Now.Year + "&rpt=" + code + "&p=ci",
+                        name = lines[i].Remove(0, 1)
+                    };
+                    rs.metadata.payload.Add(pl);
+                }
+                //return Json(rs);
+                ApiAiResponse response = new ApiAiResponse();
+                response.fulfillmentText = responsetext;
+                response.outputContexts = new List<OutputContext>();
+                return Json(response);
+            }
+            else
+            {
+                ApiAiResponse response = new ApiAiResponse();
+                response.fulfillmentText = responsetext;
+                response.outputContexts = new List<OutputContext>();
+                return Json(response);
+            }            
         }
 
         // PUT api/values/5

@@ -20,7 +20,7 @@ namespace WebApplication3.Models
     public class ApiAiResponse
     {
         public string fulfillmentText { get; set; }
-        public List<object> outputContexts { get; set; }
+        public List<OutputContext> outputContexts { get; set; }
     }
 
     //These parameters are defined in the Dialogflow console
@@ -99,10 +99,28 @@ namespace WebApplication3.Models
 
     public class Payload
     {
+        public string type { get; set; }
+        public string url { get; set; }
+        public string name { get; set; }
     }
 
     public class OriginalDetectIntentRequest
     {
         public Payload payload { get; set; }
+    }
+
+    //This is for sending a response to Kommunicate that has links.
+    public class KommunicateResponse
+    {
+        public string message { get; set; }
+        public string platform { get; set; }
+        public Metadata metadata { get; set; }
+    }
+
+    public class Metadata
+    {
+        public string contentType { get; set; }
+        public string templateId { get; set; }
+        public List<Payload> payload { get; set; }
     }
 }
