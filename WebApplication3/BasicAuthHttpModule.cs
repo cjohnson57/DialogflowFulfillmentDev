@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading;
 using System.Web;
 using System.Data.SQLite;
+using System.Security.Cryptography;
+using System.IO;
 
 namespace WebHostBasicAuth.Modules
 {
@@ -35,20 +37,79 @@ namespace WebHostBasicAuth.Modules
         {
             using (SQLiteConnection cn = new SQLiteConnection("Data Source=|DataDirectory|\\AUTHORIZATION.sqlite3; Version=3"))
             {
-                string query = "SELECT USERNAME, PASSWORDHASH FROM BASICAUTH";
-                SQLiteCommand cmd = new SQLiteCommand(query, cn);
-                string un = "";
-                int psh = 0;
-                cn.Open();
-                SQLiteDataReader dr = cmd.ExecuteReader();
-                while (dr.Read())
+                using (Aes alg = Aes.Create())
                 {
-                    un = dr[0].ToString();
-                    psh = int.Parse(dr[1].ToString());
-                }
-                cn.Close();
+                    string query = "SELECT KEYBYTES, IVBYTES, PWBYTES, USERNAME FROM AES";
+                    SQLiteCommand cmd = new SQLiteCommand(query, cn);
+                    int i = 0;
+                    int j = 0;
+                    int k = 0;
+                    byte[] key = new byte[32];
+                    byte[] iv = new byte[16];
+                    byte[] pwb = new byte[16];
+                    string un = "";
+                    cn.Open();
+                    SQLiteDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        key[i] = (byte)int.Parse(dr[0].ToString());
+                        i++;
+                        if(!string.IsNullOrEmpty(dr[1].ToString()))
+                        {
+                            iv[j] = (byte)int.Parse(dr[1].ToString());
+                            j++;
+                        }
+                        if (!string.IsNullOrEmpty(dr[2].ToString()))
+                        {
+                            pwb[k] = (byte)int.Parse(dr[2].ToString());
+                            k++;
+                        }
+                        if (!string.IsNullOrEmpty(dr[3].ToString()))
+                        {
+                            un = dr[3].ToString();
+                        }
+                    }
+                    cn.Close();
 
-                return username == un && password.GetHashCode() == psh;
+                    alg.Key = key;
+                    alg.IV = iv;
+
+                    if(key[0] != 124)
+                    {
+                        key = key.Reverse().ToArray();
+                    }
+                    if(iv[0] != 34)
+                    {
+                        iv = iv.Reverse().ToArray();
+                    }
+                    if (pwb[0] != 248)
+                    {
+                        pwb = pwb.Reverse().ToArray();
+                    }
+
+                    ICryptoTransform encryptor = alg.CreateEncryptor(alg.Key, alg.IV);
+
+                    byte[] encrypted;
+                    using (MemoryStream msEncrypt = new MemoryStream())
+                    {
+                        using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                        {
+                            using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                            {
+                                swEncrypt.Write(password);
+                            }
+                            encrypted = msEncrypt.ToArray();
+                        }
+                    }
+                    for(int l = 0; l < pwb.Length; l++)
+                    {
+                        if(pwb[l] != encrypted[l])
+                        {
+                            return false;
+                        }
+                    }
+                    return username == un;
+                }
             }
         }
 
