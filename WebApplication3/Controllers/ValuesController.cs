@@ -1,15 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
-using ApiAiSDK;
-using ApiAiSDK.Model;
-using System.IO;
-using Newtonsoft.Json;
-using System.Text;
-using System.Web.Script.Serialization;
 using WebApplication3.Models;
 
 namespace WebApplication3.Controllers
@@ -41,32 +32,32 @@ namespace WebApplication3.Controllers
                 switch (intent)
                 {
                     case "FindReport":
-                        return respond(ff.FindReport(request), false);
+                        return Respond(ff.FindReport(request), false);
                     case "FindReport.code":
-                        return respond(ff.GiveURL(request), false);
+                        return Respond(ff.GiveURL(request), false);
                     case "FindReport.year":
-                        return respond(ff.CheckYear(request), false);
+                        return Respond(ff.CheckYear(request), false);
                     case "SearchReport.topics":
-                        return respond(ff.ListTopics(request), false);
+                        return Respond(ff.ListTopics(request), false);
                     case "SearchReport.topics.search":
-                        return respond(ff.ListByTopic(request), true);
+                        return Respond(ff.ListByTopic(request), true);
                     case "SearchReport.keywords.search":
-                        return respond(ff.ListByKeyword(request, true), true);
+                        return Respond(ff.ListByKeyword(request, true), true);
                     case "Query.People.conditions":
-                        return respond(ff.Query(request), false);
+                        return Respond(ff.Query(request), false);
                     case "Query.Crashes.conditions":
-                        return respond(ff.Query(request), false);
+                        return Respond(ff.Query(request), false);
                     case "Query.Vehicles.conditions":
-                        return respond(ff.Query(request), false);
+                        return Respond(ff.Query(request), false);
                 }
             //}
             //catch { }
 
-            return respond("Hello World", false);
+            return Respond("Hello World", false);
         }
 
         //This function creates the response to send back to Dialogflow.
-        public IHttpActionResult respond(string responsetext, bool links)
+        public IHttpActionResult Respond(string responsetext, bool links)
         {
             if(links)
             {
@@ -75,7 +66,7 @@ namespace WebApplication3.Controllers
                 {
                     message = lines[0],
                     platform = "kommunicate",
-                    metadata = new Models.Metadata()
+                    metadata = new Metadata()
                     {
                         contentType = "300",
                         templateId = "3",
@@ -94,16 +85,20 @@ namespace WebApplication3.Controllers
                     rs.metadata.payload.Add(pl);
                 }
                 //return Json(rs);
-                ApiAiResponse response = new ApiAiResponse();
-                response.fulfillmentText = responsetext;
-                response.outputContexts = new List<OutputContext>();
+                ApiAiResponse response = new ApiAiResponse
+                {
+                    fulfillmentText = responsetext,
+                    outputContexts = new List<OutputContext>()
+                };
                 return Json(response);
             }
             else
             {
-                ApiAiResponse response = new ApiAiResponse();
-                response.fulfillmentText = responsetext;
-                response.outputContexts = new List<OutputContext>();
+                ApiAiResponse response = new ApiAiResponse
+                {
+                    fulfillmentText = responsetext,
+                    outputContexts = new List<OutputContext>()
+                };
                 return Json(response);
             }            
         }

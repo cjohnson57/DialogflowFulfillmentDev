@@ -1,19 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Web.Http;
-using ApiAiSDK;
-using ApiAiSDK.Model;
-using System.IO;
-using Newtonsoft.Json;
-using System.Text;
-using System.Web.Script.Serialization;
 using WebApplication3.Models;
-using WebApplication3.Controllers;
 using System.Data.SqlClient;
-using System.Data;
 using System.Data.SQLite;
 using System.Text.RegularExpressions;
 
@@ -196,10 +185,10 @@ namespace WebApplication3
         {
             using (SqlConnection cn = new SqlConnection("Data Source=dev-sqlsrv;Initial Catalog=CRASHDWHSRG;Integrated Security=true"))
             {
-                TripleString ts = QueryQueryBuilder(request);
-                string query = ts.string1;
-                string conditionsforpeople = ts.string2;
-                string query_total = ts.string3;
+                string[] ts = QueryQueryBuilder(request);
+                string query = ts[0];
+                string conditionsforpeople = ts[1];
+                string query_total = ts[2];
                 SqlCommand cmd = new SqlCommand(query, cn);
 
                 cn.Open();
@@ -235,7 +224,7 @@ namespace WebApplication3
         }
 
         //This function builds the query for the query functionality.
-        private TripleString QueryQueryBuilder(ApiAiRequest request)
+        private string[] QueryQueryBuilder(ApiAiRequest request)
         {
             string table = "";
             //If the base parameters don't contains the table (which they probably won't) searches the output contexts for the table's value until it finds it.
@@ -348,20 +337,8 @@ namespace WebApplication3
                 query_total += temp;
                 conditionsforpeople += "In " + request.queryResult.parameters.year1 + Environment.NewLine;
             }
-            TripleString ts = new TripleString
-            {
-                string1 = query,
-                string2 = conditionsforpeople,
-                string3 = query_total
-            };
+            string[] ts = { query, conditionsforpeople, query_total };
             return ts;
-        }
-
-        struct TripleString
-        {
-            public string string1;
-            public string string2;
-            public string string3;
         }
 
         //IntVars are the name I use to refer to condition variables which involve a number. These are different from other conditions because they have a variable aspect
